@@ -1,0 +1,16 @@
+{
+  "name": "Travel with Security",
+  "short_name": "TWS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d6001c",
+  "description": "Simulazione app Travel with Security - Trenitalia style.",
+  "icons": [
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

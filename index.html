@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel with Security - Simulazione</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .app-container {
+            max-width: 420px;
+            height: 850px;
+            margin: 2rem auto;
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 10px #1f2937;
+            overflow: hidden;
+            background-color: #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            background-color: #ffffff;
+            color: #1f2937;
+            padding: 0.5rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .app-header {
+            background-color: #f8fafc;
+            flex-shrink: 0;
+        }
+        .trenitalia-red { color: #d6001c; }
+        .trenitalia-bg-red { background-color: #d6001c; }
+        .trenitalia-bg-red-hover:hover { background-color: #b00017; }
+        .alert-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .alert-card:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        main {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .footer-nav {
+            flex-shrink: 0;
+            border-top: 1px solid #e5e7eb;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+        /* Stili per la pagina di registrazione */
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #d6001c;
+            box-shadow: 0 0 0 1px #d6001c;
+            outline: none;
+        }
+        /* Stili per il Toast di Notifica (Simulazione Push) */
+        #notification-toast {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease-in-out;
+            padding: 0.5rem;
+        }
+        #notification-toast.show {
+            transform: translateY(60px); /* Sotto l'header */
+        }
+
+        /* NUOVI STILI PER IL LOGO */
+        .logo-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2rem; /* Spazio sotto il logo */
+            margin-top: 1rem; /* Spazio sopra il logo */
+        }
+        .logo-new-badge {
+            position: absolute;
+            top: 0px;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centra perfettamente, spostandolo anche sopra il bordo */
+            background-color: #d6001c; /* trenitalia-red */
+            color: white;
+            font-weight: 800;
+            padding: 0.25rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .logo-text-red {
+            color: #d6001c;
+            font-size: 1.1rem; /* Aumentato leggermente per visibilità */
+            font-weight: 800;
+            line-height: 1;
+        }
+        /* FINE NUOVI STILI PER IL LOGO */
+
+        /* STILI PER LA MAPPA STAZIONE 2D MIGLIORATA */
+        .station-map-canvas {
+            flex-grow: 1;
+            background-color: #ffffff; 
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            padding: 0;
+            overflow: hidden;
+            position: relative; 
+            min-height: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Allinea il contenuto dal basso (terminale) */
+        }
+
+        .track-line {
+            height: 10px;
+            background-color: #374151; /* Grigio scuro per il binario */
+            width: 100%;
+            position: relative;
+        }
+        .platform-area {
+            background-color: #e5e7eb; /* Grigio chiaro per la banchina */
+            height: 60px; /* Altezza aumentata */
+            width: 100%;
+            border-top: 1px solid #d1d5db;
+            border-bottom: 1px solid #d1d5db;
+            position: relative;
+            margin: 5px 0; /* Spazio tra banchine */
+        }
+        .platform-area span.label {
+            position: absolute;
+            top: -15px;
+            left: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .terminal-building {
+            background-color: #f3f4f6; /* Grigio molto chiaro per l'edificio */
+            border-top: 3px solid #d6001c; /* Bordo rosso Trenitalia */
+            height: 120px;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .poi-pin {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+            z-index: 30;
+            font-size: 0.7rem; /* Dimensione del testo nel pin */
+        }
+        .poi-pin:hover {
+            transform: scale(1.1);
+        }
+        .poi-pin i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Stile per l'indicatore "Tu Sei Qui" */
+        .you-are-here {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #10b981; /* Verde smeraldo */
+            border-radius: 50%;
+            box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.5); /* Anello esterno */
+            z-index: 50;
+            animation: pulse 1.5s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .you-are-here span {
+            position: absolute;
+            bottom: 100%;
+            margin-bottom: 5px;
+            padding: 3px 6px;
+            background-color: #10b981;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        /* FINE STILI MAPPA STAZIONE 2D MIGLIORATA */
+
+    </style>
+</head>
+<body class="p-4">
+    <div class="app-container">
+        <div id="notification-toast" class="bg-white border-b border-gray-200 shadow-lg p-3 mx-4 rounded-xl flex items-start space-x-3 cursor-pointer" onclick="navigate('notifications')">
+            <i data-lucide="bell" class="w-5 h-5 trenitalia-red flex-shrink-0 mt-0.5"></i>
+            <div class="flex-grow">
+                <p class="font-bold text-sm text-gray-900" id="toast-title">Nuova Notifica</p>
+                <p class="text-xs text-gray-600" id="toast-message">Messaggio di notifica.</p>
+            </div>
+            <i data-lucide="x" class="w-4 h-4 text-gray-400 flex-shrink-0" onclick="event.stopPropagation(); hideToast();"></i>
+        </div>
+
+        <div class="status-bar">
+            <span id="time-display"></span>
+            <div class="flex items-center space-x-1">
+                <i data-lucide="signal" class="w-4 h-4"></i>
+                <span>5G</span>
+                <i data-lucide="battery-full" class="w-4 h-4"></i>
+            </div>
+        </div>
+
+        <header id="app-header" class="app-header p-3 flex justify-between items-center border-b border-gray-200">
+            <button id="back-button" onclick="handleBack()" class="text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-full invisible">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            <h1 id="header-title" class="text-lg font-bold text-gray-800">Travel with Security</h1>
+            <div class="w-10"></div>
+        </header>
+
+        <main id="app-content" class="p-5 bg-white"></main>
+
+        <div class="footer-nav p-2 flex justify-around bg-white">
+            <button onclick="navigate('home')" id="nav-home" class="flex flex-col items-center text-xs text-gray-500 hover:text-red-600">
+                <i data-lucide="shield" class="w-5 h-5"></i>
+                <span>Security</span>
+            </button>
+            <button onclick="navigate('register')" id="nav-register" class="flex flex-col items-center text-xs text-gray-500 hover:text-red-600">
+                <i data-lucide="user" class="w-5 h-5"></i>
+                <span>Registrati</span>
+            </button>
+            <button onclick="navigate('map')" id="nav-map" class="flex flex-col items-center text-xs text-red-600 font-semibold">
+                <i data-lucide="map" class="w-5 h-5"></i> <span>Mappa Stazione</span>
+            </button>
+            <button onclick="navigate('notifications')" id="nav-notifications" class="flex flex-col items-center text-xs text-gray-500 hover:text-red-600 relative">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+                <span>Notifiche</span>
+                <span id="notification-badge" class="absolute top-0 right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="display: none;">0</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-xl font-bold text-gray-900 mb-4 flex items-center justify-center"></h3>
+            <p id="modal-message" class="text-gray-700 mb-6"></p>
+            <button onclick="hideCustomAlert()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-bold transition-colors">
+                Chiudi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Definizioni dei biglietti predefiniti
+        const TICKET_DATA = {
+            av: {
+                id: 'av',
+                type: "Alta Velocità",
+                train: "AV9403",
+                details: "Carrozza 5, Posto 1C",
+                route: "Roma Termini - Milano Centrale"
+            },
+            regionale: {
+                id: 'regionale',
+                type: "Regionale",
+                train: "R21060",
+                details: null,
+                route: "Napoli Centrale - Formia Gaeta"
+            }
+        };
+
+        // NUOVI POI per la Mappa Stazione 2D (con aggiunta di Banchina 3 e nuovi servizi)
+        const STATION_POI = [
+            // POI Edificio Terminale
+            { name: 'Biglietteria', icon: 'ticket', color: 'text-blue-600', position: 'bottom: 5px; left: 10%;' },
+            { name: 'Uscita Metro', icon: 'railway-track', color: 'text-gray-600', position: 'bottom: 5px; left: 35%;' },
+            { name: 'Polizia Ferroviaria', icon: 'shield-check', color: 'text-red-600', position: 'bottom: 5px; right: 10%;' },
+            { name: 'Negozi', icon: 'store', color: 'text-purple-600', position: 'bottom: 5px; right: 30%;' }, // NUOVO POI
+            // POI Banchina 1/2
+            { name: 'Bar', icon: 'coffee', color: 'text-yellow-600', position: 'bottom: 5px; left: 15%;', platform: 1 },
+            { name: 'Sala Blu', icon: 'wheelchair', color: 'text-blue-600', position: 'bottom: 5px; right: 25%;', platform: 1 },
+            { name: 'Uscita Parcheggio', icon: 'parking-square', color: 'text-gray-700', position: 'bottom: 5px; left: 45%;', platform: 1 }, // NUOVO POI
+            // POI Banchina 2/3
+            { name: 'Toilette', icon: 'toilet', color: 'text-gray-600', position: 'bottom: 5px; left: 55%;', platform: 2 },
+            { name: 'Info Point', icon: 'info', color: 'text-red-600', position: 'bottom: 5px; right: 10%;', platform: 2 },
+            { name: 'Distrib. Automatica', icon: 'droplet', color: 'text-cyan-600', position: 'bottom: 5px; left: 20%;', platform: 2 }, // NUOVO POI
+            // POI Banchina 3/4 (NUOVA BANCHINA)
+            { name: 'Scale Mobili', icon: 'move-vertical', color: 'text-green-600', position: 'bottom: 5px; left: 40%;', platform: 3 },
+            { name: 'Punto Ritiro Bici', icon: 'bike', color: 'text-orange-600', position: 'bottom: 5px; right: 5%;', platform: 3 },
+        ];
+
+
+        const appState = {
+            currentScreen: 'home',
+            history: ['home'],
+            currentAlert: null,
+            // Dati utente simulati
+            userData: {
+                isRegistered: true,
+                nome: 'Mario',
+                cognome: 'Rossi',
+                documentType: 'C.I. Elettronica',
+                documentCode: 'AB12345CD',
+                selectedTrainId: 'av',
+                domicilio: {
+                    provincia: 'RM', comune: 'Roma', indirizzo: 'Via Prova', civico: '12', cap: '00150'
+                }
+            },
+            ticketData: TICKET_DATA,
+            notifications: [
+                { id: 1, title: 'Benvenuto', message: 'Registra i tuoi dati per un intervento rapido in caso di emergenza.', read: false, date: '2 ore fa', icon: 'shield-check', color: 'text-blue-500' },
+                { id: 2, title: 'Treno Partito', message: 'AV9403 è partito. Goditi il viaggio!', read: true, date: '1 ora fa', icon: 'train-front', color: 'text-green-500' }
+            ],
+        };
+
+
+        // --- Funzioni di Notifica ---
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notification-badge');
+            const unreadCount = appState.notifications.filter(n => !n.read).length;
+            if (badge) {
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+                badge.textContent = unreadCount;
+            }
+        }
+
+        function markAllAsRead() {
+            appState.notifications.forEach(n => n.read = true);
+        }
+
+        function showToast(title, message, duration = 4000) {
+            const toast = document.getElementById('notification-toast');
+            if (!toast) return;
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-message').textContent = message;
+            setTimeout(() => toast.classList.add('show'), 50);
+            setTimeout(() => hideToast(), duration);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('notification-toast');
+            if (toast) toast.classList.remove('show');
+        }
+
+        function addAlertNotification(title, message, icon, color) {
+            const newId = (appState.notifications[0]?.id || 0) + 1;
+            const newNotification = { id: newId, title, message, read: false, date: 'Ora', icon, color };
+            appState.notifications.unshift(newNotification);
+            updateNotificationBadge();
+            showToast(title, message);
+        }
+
+        function addSecurityAlertNotification(alertType, location) {
+            addAlertNotification(`ALERT Inviato: ${alertType}`, `Segnalazione ricevuta. Posizione: ${location}.`, 'siren', 'text-red-600');
+        }
+
+
+        // --- Funzioni Generali ---
+        function getSelectedTrain() {
+            return appState.ticketData[appState.userData.selectedTrainId];
+        }
+
+        function hideCustomAlert() {
+             const modal = document.getElementById('custom-modal');
+             if (modal) modal.style.display = 'none';
+        }
+
+        function showInfoAlert(message, title = 'Informazione', icon = 'info', iconColor = 'text-blue-600') {
+            const modal = document.getElementById('custom-modal');
+            if (!modal) return;
+            document.getElementById('modal-title').innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 mr-2 ${iconColor}"></i> ${title}`;
+            document.getElementById('modal-message').innerHTML = message;
+            modal.querySelector('button').textContent = 'Chiudi';
+            modal.querySelector('button').onclick = hideCustomAlert;
+            modal.style.display = 'flex';
+            if (typeof lucide !== 'undefined') lucide.createIcons(); // Assicura che l'icona nel modale sia renderizzata
+        }
+
+        function simulateCall() {
+            const modal = document.getElementById('custom-modal');
+            const trainData = getSelectedTrain();
+            if (!modal) return;
+
+            document.getElementById('modal-title').innerHTML = '<i data-lucide="phone-call" class="w-6 h-6 mr-2 text-green-600 animate-pulse"></i> Chiamata in Corso';
+            document.getElementById('modal-message').innerHTML = `
+                <p class="mb-4">Chiamando il **112** - Numero Unico di Emergenza...</p>
+                <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                    <p class="text-sm font-bold text-red-800 flex items-center">
+                        <i data-lucide="shield-check" class="w-4 h-4 mr-2"></i> Avviso Aggiunto
+                    </p>
+                    <p class="text-xs text-red-700 mt-1">Il **Capotreno** e il personale di **FsSecurity** sono stati avvisati della chiamata d'emergenza sul treno ${trainData.train}.</p>
+                </div>`;
+
+            addAlertNotification('Avviso 112 Inoltrato', 'Il Capotreno e FsSecurity informati.', 'phone-outgoing', 'text-red-600');
+            modal.querySelector('button').textContent = 'Termina Chiamata (Simulazione)';
+            modal.querySelector('button').onclick = hideCustomAlert;
+            modal.style.display = 'flex';
+             if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function updateClock() {
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            }
+        }
+
+        function handleBack() {
+            if (appState.history.length > 1) {
+                appState.history.pop();
+                const previousScreen = appState.history[appState.history.length - 1];
+                navigate(previousScreen, {}, true);
+            }
+        }
+
+        function navigate(screen, data = {}, isBack = false) {
+            hideToast();
+            appState.currentScreen = screen;
+
+            if (!isBack && appState.history[appState.history.length - 1] !== screen) {
+                appState.history.push(screen);
+            }
+
+            const content = document.getElementById('app-content');
+            const headerTitle = document.getElementById('header-title');
+            const backButton = document.getElementById('back-button');
+
+            // Aggiorna stato navigazione
+            document.querySelectorAll('.footer-nav button').forEach(btn => {
+                btn.classList.remove('text-red-600', 'font-semibold');
+                btn.classList.add('text-gray-500');
+            });
+            let targetNavId = `nav-${screen}`;
+            if (screen === 'select_train') targetNavId = 'nav-home'; // Seleziona treno illumina Home
+            const targetNavButton = document.getElementById(targetNavId);
+            if (targetNavButton) {
+                targetNavButton.classList.add('text-red-600', 'font-semibold');
+                targetNavButton.classList.remove('text-gray-500');
+            }
+
+            content.innerHTML = ''; // Pulisce il contenuto
+
+            // Gestione pulsante Indietro
+            backButton.style.visibility = ['home', 'select_train', 'map'].includes(screen) ? 'hidden' : 'visible';
+
+            // Renderizza la schermata corretta
+            let htmlContent = '';
+            switch (screen) {
+                case 'home':
+                    headerTitle.textContent = 'Travel with Security';
+                    htmlContent = renderHomeScreen();
+                    break;
+                case 'register':
+                    headerTitle.textContent = 'Registrazione Dati';
+                    htmlContent = renderRegisterScreen();
+                    break;
+                case 'select_train':
+                    headerTitle.textContent = 'Seleziona Treno';
+                    htmlContent = renderTrainSelectionScreen();
+                    break;
+                case 'map':
+                    headerTitle.textContent = 'Mappa Stazione (2D)'; // Titolo aggiornato
+                    htmlContent = renderStationMapScreen(); // Mappa Modificata
+                    break;
+                case 'notifications':
+                    headerTitle.textContent = 'Notifiche';
+                    htmlContent = renderNotificationsScreen();
+                    markAllAsRead();
+                    break;
+                case 'pre_confirm':
+                    appState.currentAlert = data;
+                    headerTitle.textContent = data.alertType.toUpperCase();
+                    htmlContent = renderPreConfirmScreen(data);
+                    break;
+                case 'qr_scan':
+                    headerTitle.textContent = 'Inquadra il codice QR';
+                    htmlContent = renderQRScanScreen();
+                    break;
+                case 'success':
+                    headerTitle.textContent = 'Segnalazione Inviata';
+                    htmlContent = renderSuccessScreen();
+                    break;
+                default:
+                    headerTitle.textContent = 'Travel with Security';
+                    htmlContent = renderHomeScreen(); // Fallback
+            }
+            content.innerHTML = htmlContent; // Inserisce il nuovo contenuto HTML
+
+            // Renderizza le icone Lucide nel nuovo contenuto
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            } else {
+                console.error("Lucide library non caricata, impossibile creare le icone.");
+            }
+
+            content.scrollTop = 0; // Torna all'inizio della pagina
+            updateNotificationBadge(); // Aggiorna il badge
+        }
+
+
+        // FUNZIONE DI SUPPORTO PER PIN STAZIONE 2D
+        function createStationPin(name, icon, color, position) {
+            return `
+                <div onclick="showInfoAlert('Hai selezionato: ${name}', 'Servizio Stazione', '${icon}', '${color}')" 
+                     class="poi-pin" 
+                     title="${name}"
+                     style="color: ${color.replace('text-', '#')}; border: 2px solid ${color.replace('text-', '#')}; ${position}">
+                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                </div>`;
+        }
+
+        // --- SCHERMATA MAPPA STAZIONE 2D (POTENZIATA) ---
+        function renderStationMapScreen() {
+            
+            // Genera i pin per l'Edificio Terminale
+            const terminalPins = STATION_POI
+                .filter(poi => !poi.platform)
+                .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
+
+            // Genera i pin per la Banchina 1/2
+            const platform1Pins = STATION_POI
+                .filter(poi => poi.platform === 1)
+                .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
+            
+            // Genera i pin per la Banchina 2/3
+            const platform2Pins = STATION_POI
+                .filter(poi => poi.platform === 2)
+                .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
+            
+            // Genera i pin per la Banchina 3/4 (NUOVA)
+            const platform3Pins = STATION_POI
+                .filter(poi => poi.platform === 3)
+                .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
+
+
+            return `
+                <div class="flex flex-col space-y-4 pb-4 h-full">
+                    <h2 class="text-xl font-bold text-gray-800">Mappa Stazione (Tipo Google Maps)</h2>
+                    <p class="text-sm text-gray-600">Localizza i principali servizi (POI), Polfer e la tua posizione esatta.</p>
+
+                    <div class="station-map-canvas relative bg-blue-50 overflow-hidden">
+                        <div class="absolute top-2 left-2 right-2 z-40">
+                            <input type="text" class="w-full p-2 rounded-lg shadow bg-white text-sm" placeholder="Cerca servizi in stazione...">
+                        </div>
+                        <div class="absolute top-16 right-2 flex flex-col space-y-1 z-40">
+                            <button class="bg-white p-1 rounded shadow hover:bg-gray-100"><i data-lucide="plus" class="w-4 h-4 text-gray-700"></i></button>
+                            <button class="bg-white p-1 rounded shadow hover:bg-gray-100"><i data-lucide="minus" class="w-4 h-4 text-gray-700"></i></button>
+                        </div>
+                        <div class="absolute bottom-2 left-2 z-40 bg-white p-1 rounded shadow">
+                            <i data-lucide="compass" class="w-5 h-5 text-red-500"></i>
+                        </div>
+                        <p class="absolute bottom-2 right-2 text-xs text-gray-500 z-40">© FS Maps 2025</p>
+                        
+                        <div class="track-line relative z-10"><span class="absolute right-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-l-md">BINARIO 4</span></div>
+                        
+                        <div class="platform-area relative z-20" id="platform3">
+                            <span class="label">Banchina 3/4</span>
+                            ${platform3Pins}
+                        </div>
+                        
+                        <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-r-md">BINARIO 3</span></div>
+                        <div class="platform-area relative z-20" id="platform2">
+                            <span class="label">Banchina 2/3</span>
+                            ${platform2Pins}
+                            <div class="you-are-here" style="bottom: 10px; left: 25%;"><span>TU SEI QUI</span></div>
+                        </div>
+                        
+                        <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-r-md">BINARIO 2</span></div>
+                        
+                        <div class="platform-area relative z-20" id="platform1">
+                             <span class="label">Banchina 1/2</span>
+                            ${platform1Pins}
+                        </div>
+
+                         <div class="track-line relative z-10"><span class="absolute right-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-l-md">BINARIO 1</span></div>
+                        
+                        <div class="terminal-building relative z-30">
+                            EDIFICIO STAZIONE / ATRIO INGRESSO
+                            ${terminalPins}
+                        </div>
+                        
+                    </div>
+                    <p class="text-xs text-center text-gray-500 mt-2">I servizi (POI) sono cliccabili. Il pin verde indica la tua posizione.</p>
+                </div>
+            `;
+        }
+
+
+        // --- Schermate esistenti (Home, Notifiche, ecc.) ---
+        function renderHomeScreen() {
+            const userStatus = appState.userData.isRegistered
+                ? `<span class="text-green-600 font-bold">Registrato</span>`
+                : `<span class="text-red-600 font-bold">Non Registrato</span>. Ti preghiamo di registrarti per un intervento più rapido.`;
+            const currentTrain = getSelectedTrain();
+            const trainDetails = currentTrain.details
+                ? `Carrozza ${currentTrain.details.split(',')[0].trim().replace('Carrozza ', '')}, ${currentTrain.details.split(',')[1].trim()}`
+                : `${currentTrain.route}`;
+
+            return `
+                <div class="text-center mb-6">
+                    <div class="logo-container mx-auto">
+                        <div class="logo-new-badge">NEW</div>
+                        <button onclick="navigate('select_train')" class="bg-white w-[140px] h-[140px] rounded-full flex flex-col items-center justify-center p-2 border-4 border-white shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300 transition">
+                            <p class="logo-text-red">TRAVEL<span class="text-xs font-normal align-top">with</span></p>
+                            <div class="flex items-center">
+                                <i data-lucide="train-front" class="w-5 h-5 trenitalia-red mr-1"></i>
+                                <p class="text-xl font-extrabold trenitalia-red leading-none -mt-1">SECURITY</p>
+                            </div>
+                        </button>
+                    </div>
+                    <p class="text-xl font-bold text-gray-800 -mt-4 mb-2">Travel with Security</p>
+                    <p class="text-sm text-gray-600">Ti senti in pericolo? Hai bisogno di assistenza?</p>
+                    <p class="text-sm text-gray-600 font-semibold mb-6">Attiva uno degli Alert sottostanti.</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    ${createAlertButton('Emergenza Silenziosa', 'Aggressione, minaccia verbale o fisica', 'shield-alert', currentTrain)}
+                    ${createAlertButton('Emergenza Medica', 'Malore o necessità di pronto soccorso', 'heart-pulse', currentTrain)}
+                    ${createAlertButton('Molestia Personale', 'Comportamenti inappropriati o persecuzioni', 'users', currentTrain)}
+                    ${createAlertButton('Furto', 'Borseggi, furti in corso o avvenuti', 'gem', currentTrain)}
+                </div>
+                <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg mb-4 shadow-sm">
+                    <p class="text-xs font-bold text-blue-800">Stato Utente:</p>
+                    <p class="text-sm font-semibold text-blue-900">Utente: ${appState.userData.nome} ${appState.userData.cognome} (${userStatus})</p>
+                </div>
+                <div class="p-4 bg-gray-50 border-l-4 border-gray-500 rounded-r-lg mb-8 cursor-pointer hover:bg-gray-100 transition" onclick="navigate('select_train')">
+                    <p class="text-xs font-bold text-gray-800 flex items-center justify-between">
+                        Treno Attuale (Clicca per cambiare): <i data-lucide="chevron-right" class="w-4 h-4 ml-2"></i>
+                    </p>
+                    <p class="text-sm font-semibold text-gray-900">${currentTrain.train} (${currentTrain.type})</p>
+                    <p class="text-xs text-gray-600 mt-1">${trainDetails}</p>
+                </div>
+                <div class="mt-8 text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-xs text-gray-500">In caso di emergenza grave e immediata, contatta il</p>
+                    <button onclick="simulateCall()" class="font-bold text-xl trenitalia-red mt-1 inline-block hover:underline focus:outline-none">112</button>
+                    <p class="text-sm text-gray-800">Numero Unico di Emergenza</p>
+                </div>`;
+        }
+
+        function renderTrainSelectionScreen() {
+            const ticketKeys = Object.keys(appState.ticketData);
+            const selectedId = appState.userData.selectedTrainId;
+            const trainCards = ticketKeys.map(key => createTrainCard(appState.ticketData[key], selectedId === key)).join('');
+            return `
+                <div class="flex flex-col space-y-4 pb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Seleziona il tuo Treno Attuale</h2>
+                    <p class="text-sm text-gray-600">Scegli il treno per pre-compilare i dettagli della segnalazione.</p>
+                    <div class="space-y-3">${trainCards}</div>
+                    <button onclick="navigate('home')" class="w-full mt-6 trenitalia-bg-red trenitalia-bg-red-hover text-white py-3 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">CONFERMA E CONTINUA</button>
+                </div>`;
+        }
+
+        function selectTrain(trainId) {
+            appState.userData.selectedTrainId = trainId;
+            navigate('select_train', {}, true); // Ricarica la schermata per mostrare la selezione
+        }
+
+        function createTrainCard(train, isSelected) {
+            const details = train.details ? `Carrozza: ${train.details.split(',')[0].replace('Carrozza ', '').trim()} - Posto: ${train.details.split(',')[1].trim()}` : `Tratta: ${train.route}`;
+            const check = isSelected ? '<i data-lucide="check-circle" class="w-6 h-6 text-green-500 flex-shrink-0"></i>' : '<div class="w-6 h-6 border-2 border-gray-400 rounded-full flex-shrink-0"></div>';
+            const icon = (train.type.includes("Frecce") || train.id === 'av') ? '<i data-lucide="zap" class="w-6 h-6 trenitalia-red"></i>' : '<i data-lucide="train-front" class="w-6 h-6 text-gray-600"></i>';
+            return `
+                <div onclick="selectTrain('${train.id}')" class="p-4 rounded-xl border-2 ${isSelected ? 'border-red-500 bg-red-50 shadow-md' : 'border-gray-200 bg-white hover:bg-gray-50'} transition cursor-pointer flex items-center">
+                    <div class="mr-3">${icon}</div>
+                    <div class="flex-grow">
+                        <p class="font-bold text-lg">${train.train} (${train.type})</p>
+                        <p class="text-sm text-gray-600">${details}</p>
+                    </div>
+                    ${check}
+                </div>`;
+        }
+
+        function renderRegisterScreen() {
+            const uData = appState.userData;
+            return `
+                <div class="flex flex-col space-y-4 pb-4">
+                    <p class="text-sm text-gray-600">Inserisci i tuoi dati per un contatto diretto e veloce con gli operatori FS in caso di emergenza.</p>
+                    <div class="input-group">
+                        <label for="docType">Tipo Documento*</label>
+                        <select id="docType">
+                            <option value="C.I. Elettronica" ${uData.documentType === 'C.I. Elettronica' ? 'selected' : ''}>Carta Identità Elettronica</option>
+                            <option value="Patente" ${uData.documentType === 'Patente' ? 'selected' : ''}>Patente</option>
+                            <option value="Passaporto" ${uData.documentType === 'Passaporto' ? 'selected' : ''}>Passaporto</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label for="docCode">Codice Documento*</label><input id="docCode" type="text" placeholder="Es. AB12345CD" value="${uData.documentCode === 'N/A' ? '' : uData.documentCode}"></div>
+                    <div class="input-group"><label for="docName">Nome*</label><input id="docName" type="text" placeholder="Es. Mario" value="${uData.nome === 'Utente' ? '' : uData.nome}"></div>
+                    <div class="input-group"><label for="docSurname">Cognome*</label><input id="docSurname" type="text" placeholder="Es. Rossi" value="${uData.cognome === 'Ospite' ? '' : uData.cognome}"></div>
+                    <h3 class="text-base font-bold text-gray-800 mt-4 border-t pt-4">DOMICILIO ITALIANO</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="input-group"><label for="domProvincia">Provincia*</label><input id="domProvincia" type="text" placeholder="Es. RM" value="${uData.domicilio.provincia}"></div>
+                        <div class="input-group"><label for="domComune">Comune*</label><input id="domComune" type="text" placeholder="Es. Roma" value="${uData.domicilio.comune}"></div>
+                    </div>
+                    <div class="input-group"><label for="domIndirizzo">Via/Piazza*</label><input id="domIndirizzo" type="text" placeholder="Es. Via Test" value="${uData.domicilio.indirizzo}"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="input-group"><label for="domCivico">Civico*</label><input id="domCivico" type="text" placeholder="Es. 10" value="${uData.domicilio.civico}"></div>
+                        <div class="input-group"><label for="domCAP">CAP*</label><input id="domCAP" type="text" placeholder="Es. 00100" value="${uData.domicilio.cap}"></div>
+                    </div>
+                    <button onclick="saveRegistration()" class="w-full mt-6 trenitalia-bg-red trenitalia-bg-red-hover text-white py-3 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">SALVA E REGISTRATI</button>
+                </div>`;
+        }
+
+        function saveRegistration() {
+            const docCode = document.getElementById('docCode').value.trim();
+            const docName = document.getElementById('docName').value.trim();
+            const docSurname = document.getElementById('docSurname').value.trim();
+            if (!docCode || !docName || !docSurname) {
+                showInfoAlert('Compila tutti i campi obbligatori del Documento.', 'Errore', 'alert-triangle', 'text-red-500'); return;
+            }
+            appState.userData.documentType = document.getElementById('docType').value;
+            appState.userData.documentCode = docCode.toUpperCase();
+            appState.userData.nome = docName;
+            appState.userData.cognome = docSurname;
+            appState.userData.isRegistered = true;
+            appState.userData.domicilio = {
+                provincia: document.getElementById('domProvincia').value.trim(),
+                comune: document.getElementById('domComune').value.trim(),
+                indirizzo: document.getElementById('domIndirizzo').value.trim(),
+                civico: document.getElementById('domCivico').value.trim(),
+                cap: document.getElementById('domCAP').value.trim(),
+            };
+            showInfoAlert('Registrazione completata! Seleziona il tuo treno.', 'Successo', 'check-circle', 'text-green-600');
+            navigate('select_train');
+        }
+
+        function createAlertButton(type, description, icon, ticket) {
+            const data = { alertType: type, description, icon, ...ticket };
+            return `
+                <button onclick='navigate("pre_confirm", ${JSON.stringify(data)})' class="alert-card w-full flex items-center p-4 bg-white rounded-xl shadow-md border border-gray-100 text-left focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="p-3 mr-4 rounded-full trenitalia-bg-red text-white flex-shrink-0"><i data-lucide="${icon}" class="w-6 h-6"></i></div>
+                    <div><p class="font-bold text-base text-gray-900">${type}</p><p class="text-xs text-gray-500">${description}</p></div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 ml-auto text-gray-400 flex-shrink-0"></i>
+                </button>`;
+        }
+
+        function renderPreConfirmScreen(data) {
+            const isRegional = data.type === "Regionale" || data.type === "Regionale Veloce";
+            const userName = `${appState.userData.nome} ${appState.userData.cognome}`;
+            const locationInfo = data.details ? `alla ${data.details}, treno ${data.train}.` : `sul treno ${data.train} (${data.route}).`;
+            const regWarning = !appState.userData.isRegistered ? `<p class="text-xs text-red-700 mt-2 font-semibold">ATTENZIONE: Non sei registrato.</p>` : '';
+            const qrPrompt = isRegional ? `<div class="p-4 bg-gray-100 rounded-lg text-center mt-6"><i data-lucide="qr-code" class="w-10 h-10 mx-auto text-gray-600 mb-2"></i><p class="text-sm font-semibold text-gray-800">Localizzazione</p><p class="text-xs text-gray-600 mt-1">Conferma e scansiona il QR code più vicino.</p></div>` : '';
+            const nextStep = isRegional ? 'qr_scan' : 'success';
+            return `
+                <div class="flex flex-col h-full">
+                    <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg mb-4">
+                        <p class="text-sm font-semibold text-red-800">Attivando alert: <span class="uppercase">${data.alertType}</span></p>
+                        <p class="text-xs text-red-700 mt-1">Utente: ${userName}</p><p class="text-xs text-red-700 mt-1">${locationInfo}</p>${regWarning}
+                    </div>
+                    <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                        <p class="text-sm font-bold text-yellow-800 flex items-center"><i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> ATTENZIONE - SANZIONI</p>
+                        <p class="text-xs text-yellow-700 mt-1">L'attivazione indebita è un abuso (art. 17 DPR 753/80).</p>
+                    </div>
+                    ${qrPrompt}
+                    <div class="mt-auto pt-6">
+                        <button onclick="activateAlert('${nextStep}')" class="w-full trenitalia-bg-red trenitalia-bg-red-hover text-white py-4 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">CONFERMA ATTIVAZIONE</button>
+                    </div>
+                </div>`;
+        }
+
+        function activateAlert(nextStep) {
+             const currentTrain = getSelectedTrain();
+             if (nextStep === 'success' && appState.currentAlert) {
+                 if (currentTrain.details) {
+                     appState.currentAlert.finalLocation = currentTrain.details;
+                 } else if (!appState.currentAlert.finalLocation || appState.currentAlert.finalLocation.includes("non specificata")) {
+                     appState.currentAlert.finalLocation = `Treno ${currentTrain.train}`;
+                 }
+             }
+             navigate(nextStep);
+        }
+
+        function renderQRScanScreen() {
+             return `
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-gray-800">Inquadra QR Code</h2>
+                    <p class="text-sm text-gray-600 mt-2 mb-6">Scansiona il codice per localizzarti.</p>
+                    <div class="w-full max-w-xs aspect-square bg-gray-800 rounded-2xl flex items-center justify-center mb-8 relative overflow-hidden mx-auto">
+                         <div class="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-white/80 rounded-tl-lg"></div><div class="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-white/80 rounded-tr-lg"></div><div class="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-white/80 rounded-bl-lg"></div><div class="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-white/80 rounded-br-lg"></div>
+                        <div class="w-3/4 h-1 bg-red-500 absolute animate-pulse" style="animation: scan 2s infinite alternate;"></div>
+                    </div><style> @keyframes scan { 0% { top: 15%; } 100% { top: 85%; } } </style>
+                    <p class="text-sm text-gray-500 mb-2">O inserisci il codice:</p>
+                    <input id="qr-input" type="text" placeholder="Es. C5-P12A" class="w-full p-3 border-2 border-gray-300 rounded-lg text-center font-mono tracking-widest focus:ring-2 focus:ring-red-500 focus:border-red-500 transition uppercase">
+                    <button onclick="confirmQRLocation()" class="w-full mt-6 trenitalia-bg-red trenitalia-bg-red-hover text-white py-4 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">ATTIVA ALERT</button>
+                </div>`;
+        }
+
+        function confirmQRLocation() {
+            const input = document.getElementById('qr-input');
+            const locationCode = input ? input.value.trim() : '';
+            const currentTrain = getSelectedTrain();
+            if (appState.currentAlert) {
+                appState.currentAlert.finalLocation = locationCode.length > 0 ? locationCode.toUpperCase() : `Posizione non specificata (${currentTrain.route})`;
+            }
+            navigate('success');
+        }
+
+        function renderSuccessScreen() {
+            const alert = appState.currentAlert;
+            const userData = appState.userData;
+            const trainData = getSelectedTrain();
+            if (!alert) return `<p>Errore: Dati alert mancanti.</p>`; // Safety check
+
+            const finalLocationDisplay = alert.finalLocation || trainData.details || `Treno ${trainData.train}`;
+            const registeredInfo = userData.isRegistered ? `<p class="text-xs font-bold text-gray-700 mt-4">Dati Utente Trasferiti:</p><p class="text-sm"><span class="font-semibold">${userData.nome} ${userData.cognome}</span> - ${userData.documentType} ${userData.documentCode}</p>` : '';
+
+            addSecurityAlertNotification(alert.alertType, finalLocationDisplay);
+
+            return `
+                <div class="text-center flex flex-col items-center justify-center h-full">
+                    <div class="w-24 h-24 bg-green-500 text-white rounded-full flex items-center justify-center shadow-xl mb-6"><i data-lucide="check" class="w-16 h-16"></i></div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Segnalazione Ricevuta!</h2>
+                    <p class="text-base text-gray-700">Il Capotreno e FsSecurity hanno ricevuto la segnalazione e ti raggiungeranno a momenti.</p>
+                    <div class="mt-8 p-4 bg-gray-100 rounded-xl w-full text-left shadow-inner">
+                        <p class="text-xs font-bold text-gray-700 mb-2">Riepilogo Alert:</p>
+                        <p class="text-sm"><span class="font-semibold">Tipo:</span> ${alert.alertType}</p>
+                        <p class="text-sm"><span class="font-semibold">Treno:</span> ${trainData.train} (${trainData.type})</p>
+                        <p class="text-sm"><span class="font-semibold">Localizzazione:</span> ${finalLocationDisplay}</p>
+                        ${registeredInfo}
+                    </div>
+                    <button onclick="navigate('home')" class="w-full mt-auto bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-bold transition-colors">Torna alla Home</button>
+                </div>`;
+        }
+
+        function renderNotificationsScreen() {
+            const sortedNotifications = [...appState.notifications].sort((a, b) => b.id - a.id);
+            const notificationList = sortedNotifications.map(n => `
+                <div class="flex items-start p-4 bg-white border-b ${n.read ? 'opacity-80' : 'shadow-sm'} hover:bg-gray-50 transition">
+                    <div class="p-2 mr-3 rounded-full ${n.read ? 'bg-gray-200' : 'bg-red-100'} ${n.color} flex-shrink-0"><i data-lucide="${n.icon}" class="w-5 h-5"></i></div>
+                    <div class="flex-grow">
+                        <p class="font-bold text-sm text-gray-900 ${n.read ? 'text-gray-700' : 'trenitalia-red'}">${n.title}</p>
+                        <p class="text-sm text-gray-600">${n.message}</p><p class="text-xs text-gray-400 mt-1">${n.date}</p>
+                    </div>
+                    ${!n.read ? '<span class="w-2 h-2 bg-red-600 rounded-full flex-shrink-0 mt-2"></span>' : ''}
+                </div>`).join('');
+
+            return `
+                <div class="flex flex-col h-full pb-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-3">Tutte le Notifiche</h2>
+                    ${appState.notifications.length === 0 ? `<div class="text-center p-10 text-gray-500"><i data-lucide="bell-off" class="w-12 h-12 mx-auto mb-3"></i><p class="font-semibold">Nessuna notifica</p></div>` : notificationList}
+                    <div class="mt-auto pt-6 border-t border-gray-100 p-4">
+                        <button onclick="showInfoAlert('Simulazione: Le notifiche push reali richiedono setup aggiuntivi.', 'Info Push', 'code', 'text-blue-500')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl font-bold text-sm transition-colors">Info Notifiche Push</button>
+                    </div>
+                </div>`;
+        }
+
+        // --- Inizializzazione ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Dati precompilati (rimangono invariati)
+            appState.userData.nome = 'Mario';
+            appState.userData.cognome = 'Rossi';
+            appState.userData.isRegistered = true;
+            appState.userData.documentCode = 'AB12345CD';
+            appState.userData.documentType = 'C.I. Elettronica';
+            appState.userData.domicilio = { provincia: 'RM', comune: 'Roma', indirizzo: 'Via Prova', civico: '12', cap: '00150' };
+
+            // Inizializza l'app
+            navigate('home'); // Mostra la schermata home
+            updateClock(); // Imposta l'orologio
+            updateNotificationBadge(); // Aggiorna il badge notifiche
+            setInterval(updateClock, 30000); // Aggiorna l'orologio ogni 30 secondi
+
+            // Non è necessario chiamare lucide.createIcons() qui,
+            // perché viene chiamato alla fine di ogni `Maps()`
+        });
+    </script>
+</body>
+</html>
