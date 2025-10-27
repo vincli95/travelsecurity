@@ -1,4 +1,4 @@
-Put your HTML text here<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -16,8 +16,8 @@ Put your HTML text here<!DOCTYPE html>
             /* Forza l'altezza al 100% per un'esperienza full-screen */
             height: 100vh;
             width: 100vw;
-            /* **Rimosso 'overflow: hidden' dal body per permettere lo scroll se necessario (su desktop)** */
-            overflow-y: auto; 
+            /* **CORREZIONE CRITICA: Elimina lo scorrimento sul body** */
+            overflow: hidden; 
         }
         /* Stili per il Mockup/Mobile: Full Screen di default */
         .app-container {
@@ -28,7 +28,6 @@ Put your HTML text here<!DOCTYPE html>
             margin: 0;
             border-radius: 0;
             box-shadow: none;
-            /* **Rimosso 'overflow: hidden' dal container** */
             background-color: #ffffff;
             position: relative;
             display: flex;
@@ -42,6 +41,7 @@ Put your HTML text here<!DOCTYPE html>
                 display: flex; /* Centra il contenitore se più piccolo del viewport */
                 align-items: center;
                 justify-content: center;
+                overflow: auto; /* Permette lo scroll su desktop, se necessario */
             }
             .app-container {
                 max-width: 420px;
@@ -74,6 +74,16 @@ Put your HTML text here<!DOCTYPE html>
             overflow-y: auto; /* Abilita lo scorrimento verticale solo per il contenuto principale */
             /* Aggiunge un padding di fondo per evitare che l'ultima riga di contenuto si nasconda dietro il footer */
             padding-bottom: 20px; 
+        }
+
+        /* Nuovo stile per il padding ridotto su mobile */
+        .main-content-padding {
+            padding: 1.25rem; /* Corrisponde a p-5 */
+        }
+        @media (max-width: 420px) {
+             .main-content-padding {
+                padding: 1rem; /* p-4 per schermi più piccoli */
+            }
         }
 
         .footer-nav {
@@ -137,30 +147,31 @@ Put your HTML text here<!DOCTYPE html>
             transform: translateY(60px); 
         }
 
-        /* NUOVI STILI PER IL LOGO */
+        /* NUOVI STILI PER IL LOGO (RIDIMENSIONATI) */
         .logo-container {
             position: relative;
             display: inline-block;
-            margin-bottom: 2rem; 
-            margin-top: 1rem; 
+            margin-bottom: 1rem; 
+            margin-top: 0.5rem; 
         }
         .logo-new-badge {
             position: absolute;
             top: 0px;
             left: 50%;
-            transform: translate(-50%, -50%); 
+            /* COMPRESSIONE: Ridotto il translate/padding/font-size */
+            transform: translate(-50%, -60%); 
             background-color: #d6001c; 
             color: white;
             font-weight: 800;
-            padding: 0.25rem 1rem;
+            padding: 0.1rem 0.5rem;
             border-radius: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             z-index: 10;
         }
         .logo-text-red {
             color: #d6001c;
-            font-size: 1.1rem; 
+            font-size: 0.9rem; /* COMPRESSIONE */
             font-weight: 800;
             line-height: 1;
         }
@@ -175,7 +186,7 @@ Put your HTML text here<!DOCTYPE html>
             padding: 0;
             overflow: hidden;
             position: relative; 
-            min-height: 500px;
+            min-height: 350px; /* Ridotto il min-height per schermi piccoli */
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
@@ -183,32 +194,32 @@ Put your HTML text here<!DOCTYPE html>
         }
 
         .track-line {
-            height: 10px;
+            height: 8px; /* Ridotto */
             background-color: #374151; /* Grigio scuro per il binario */
             width: 100%;
             position: relative;
         }
         .platform-area {
             background-color: #e5e7eb; /* Grigio chiaro per la banchina */
-            height: 60px; 
+            height: 45px; /* Ridotto */
             width: 100%;
             border-top: 1px solid #d1d5db;
             border-bottom: 1px solid #d1d5db;
             position: relative;
-            margin: 5px 0; /* Spazio tra banchine */
+            margin: 3px 0; /* Ridotto lo spazio */
         }
         .platform-area span.label {
             position: absolute;
-            top: -15px;
-            left: 10px;
-            font-size: 0.7rem;
+            top: -12px; /* Aggiustato per la riduzione di height */
+            left: 8px; /* Ridotto */
+            font-size: 0.6rem; /* Ridotto */
             font-weight: 600;
             color: #4b5563;
         }
         .terminal-building {
             background-color: #f3f4f6; /* Grigio molto chiaro per l'edificio */
             border-top: 3px solid #d6001c; /* Bordo rosso Trenitalia */
-            height: 120px;
+            height: 80px; /* Ridotto */
             width: 100%;
             position: relative;
             display: flex;
@@ -216,63 +227,27 @@ Put your HTML text here<!DOCTYPE html>
             justify-content: center;
             color: #1f2937;
             font-weight: 700;
-            font-size: 1.1rem;
-            margin-top: 5px;
+            font-size: 0.9rem; /* Ridotto */
+            margin-top: 3px; /* Ridotto */
         }
 
         .poi-pin {
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.1s;
-            z-index: 30;
-            font-size: 0.7rem; 
-        }
-        .poi-pin:hover {
-            transform: scale(1.1);
+            width: 24px; /* Ridotto */
+            height: 24px; /* Ridotto */
+            font-size: 0.6rem; /* Ridotto */
         }
         .poi-pin i {
-            width: 18px;
-            height: 18px;
+            width: 14px; /* Ridotto */
+            height: 14px; /* Ridotto */
         }
 
         /* Stile per l'indicatore "Tu Sei Qui" */
         .you-are-here {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: #10b981; /* Verde smeraldo */
-            border-radius: 50%;
-            box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.5); /* Anello esterno */
-            z-index: 50;
-            animation: pulse 1.5s infinite;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 24px; /* Ridotto */
+            height: 24px; /* Ridotto */
         }
         .you-are-here span {
-            position: absolute;
-            bottom: 100%;
-            margin-bottom: 5px;
-            padding: 3px 6px;
-            background-color: #10b981;
-            color: white;
-            font-size: 0.6rem;
-            font-weight: 700;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
-            100% { transform: scale(1); opacity: 1; }
+            font-size: 0.5rem; /* Ridotto */
         }
         /* FINE STILI MAPPA STAZIONE 2D MIGLIORATA */
 
@@ -297,7 +272,7 @@ Put your HTML text here<!DOCTYPE html>
             <div class="w-10"></div>
         </header>
 
-        <main id="app-content" class="p-5 bg-white"></main>
+        <main id="app-content" class="main-content-padding bg-white"></main>
 
         <div class="footer-nav p-2 flex justify-around bg-white">
             <button onclick="navigate('home')" id="nav-home" class="flex flex-col items-center text-xs text-gray-500 hover:text-red-600">
@@ -633,45 +608,45 @@ Put your HTML text here<!DOCTYPE html>
 
 
             return `
-                <div class="flex flex-col space-y-4 pb-4 h-full">
-                    <h2 class="text-xl font-bold text-gray-800">Mappa Stazione (Tipo Google Maps)</h2>
-                    <p class="text-sm text-gray-600">Localizza i principali servizi (POI), Polfer e la tua posizione esatta.</p>
+                <div class="flex flex-col space-y-3 pb-3 h-full">
+                    <h2 class="text-lg font-bold text-gray-800">Mappa Stazione (2D)</h2>
+                    <p class="text-xs text-gray-600">Localizza i principali servizi (POI), Polfer e la tua posizione esatta.</p>
 
                     <div class="station-map-canvas relative bg-blue-50 overflow-hidden">
                         <div class="absolute top-2 left-2 right-2 z-40">
-                            <input type="text" class="w-full p-2 rounded-lg shadow bg-white text-sm" placeholder="Cerca servizi in stazione...">
+                            <input type="text" class="w-full p-1.5 rounded-lg shadow bg-white text-xs" placeholder="Cerca servizi in stazione...">
                         </div>
                         <div class="absolute top-16 right-2 flex flex-col space-y-1 z-40">
-                            <button class="bg-white p-1 rounded shadow hover:bg-gray-100"><i data-lucide="plus" class="w-4 h-4 text-gray-700"></i></button>
-                            <button class="bg-white p-1 rounded shadow hover:bg-gray-100"><i data-lucide="minus" class="w-4 h-4 text-gray-700"></i></button>
+                            <button class="bg-white p-1 rounded shadow hover:bg-gray-100"><i data-lucide="plus" class="w-3 h-3 text-gray-700"></i></button>
+                            <button class="bg-white p-1 rounded shadow hover:bg-gray-100"><i data-lucide="minus" class="w-3 h-3 text-gray-700"></i></button>
                         </div>
                         <div class="absolute bottom-2 left-2 z-40 bg-white p-1 rounded shadow">
-                            <i data-lucide="compass" class="w-5 h-5 text-red-500"></i>
+                            <i data-lucide="compass" class="w-4 h-4 text-red-500"></i>
                         </div>
-                        <p class="absolute bottom-2 right-2 text-xs text-gray-500 z-40">© FS Maps 2025</p>
+                        <p class="absolute bottom-1 right-2 text-[10px] text-gray-500 z-40">© FS Maps 2025</p>
                         
-                        <div class="track-line relative z-10"><span class="absolute right-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-l-md">BINARIO 4</span></div>
+                        <div class="track-line relative z-10"><span class="absolute right-0 top-0 -mt-4 bg-gray-600 text-white text-[10px] font-bold px-1 py-0.5 rounded-l-md">BINARIO 4</span></div>
                         
                         <div class="platform-area relative z-20" id="platform3">
                             <span class="label">Banchina 3/4</span>
                             ${platform3Pins}
                         </div>
                         
-                        <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-r-md">BINARIO 3</span></div>
+                        <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-4 bg-gray-600 text-white text-[10px] font-bold px-1 py-0.5 rounded-r-md">BINARIO 3</span></div>
                         <div class="platform-area relative z-20" id="platform2">
                             <span class="label">Banchina 2/3</span>
                             ${platform2Pins}
-                            <div class="you-are-here" style="bottom: 10px; left: 25%;"><span>TU SEI QUI</span></div>
+                            <div class="you-are-here" style="bottom: 5px; left: 25%;"><span>TU SEI QUI</span></div>
                         </div>
                         
-                        <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-r-md">BINARIO 2</span></div>
+                        <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-4 bg-gray-600 text-white text-[10px] font-bold px-1 py-0.5 rounded-r-md">BINARIO 2</span></div>
                         
                         <div class="platform-area relative z-20" id="platform1">
                              <span class="label">Banchina 1/2</span>
                             ${platform1Pins}
                         </div>
 
-                         <div class="track-line relative z-10"><span class="absolute right-0 top-0 -mt-5 bg-gray-600 text-white text-xs font-bold px-2 py-0.5 rounded-l-md">BINARIO 1</span></div>
+                         <div class="track-line relative z-10"><span class="absolute right-0 top-0 -mt-4 bg-gray-600 text-white text-[10px] font-bold px-1 py-0.5 rounded-l-md">BINARIO 1</span></div>
                         
                         <div class="terminal-building relative z-30">
                             EDIFICIO STAZIONE / ATRIO INGRESSO
@@ -702,41 +677,41 @@ Put your HTML text here<!DOCTYPE html>
             }
 
             return `
-                <div class="text-center mb-6">
-                    <div class="logo-container mx-auto">
-                        <div class="logo-new-badge">NEW</div>
-                        <button onclick="navigate('select_train')" class="bg-white w-[140px] h-[140px] rounded-full flex flex-col items-center justify-center p-2 border-4 border-white shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300 transition">
-                            <p class="logo-text-red">TRAVEL<span class="text-xs font-normal align-top">with</span></p>
+                <div class="text-center mb-3">
+                    <div class="logo-container mx-auto mt-0 mb-2">
+                        <div class="logo-new-badge" style="transform: translate(-50%, -60%); padding: 0.1rem 0.5rem; font-size: 0.75rem;">NEW</div>
+                        <button onclick="navigate('select_train')" class="bg-white w-[110px] h-[110px] rounded-full flex flex-col items-center justify-center p-2 border-4 border-white shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300 transition">
+                             <p class="logo-text-red" style="font-size: 0.9rem;">TRAVEL<span class="text-xs font-normal align-top">with</span></p>
                             <div class="flex items-center">
-                                <i data-lucide="train-front" class="w-5 h-5 trenitalia-red mr-1"></i>
-                                <p class="text-xl font-extrabold trenitalia-red leading-none -mt-1">SECURITY</p>
+                                 <i data-lucide="train-front" class="w-4 h-4 trenitalia-red mr-1"></i>
+                                 <p class="text-lg font-extrabold trenitalia-red leading-none -mt-1">SECURITY</p>
                             </div>
                         </button>
                     </div>
-                    <p class="text-xl font-bold text-gray-800 -mt-4 mb-2">Travel with Security</p>
-                    <p class="text-sm text-gray-600">Ti senti in pericolo? Hai bisogno di assistenza?</p>
-                    <p class="text-sm text-gray-600 font-semibold mb-6">Attiva uno degli Alert sottostanti.</p>
+                    <p class="text-lg font-bold text-gray-800 -mt-3 mb-1">Travel with Security</p>
+                    <p class="text-xs text-gray-600">Ti senti in pericolo? Hai bisogno di assistenza?</p>
+                    <p class="text-xs text-gray-600 font-semibold mb-4">Attiva uno degli Alert sottostanti.</p>
                 </div>
-                <div class="space-y-4 mb-8">
+                <div class="space-y-2 mb-4">
                     ${createAlertButton('Emergenza Silenziosa', 'Aggressione, minaccia verbale o fisica', 'shield-alert', currentTrain)}
                     ${createAlertButton('Emergenza Medica', 'Malore o necessità di pronto soccorso', 'heart-pulse', currentTrain)}
                     ${createAlertButton('Molestia Personale', 'Comportamenti inappropriati o persecuzioni', 'users', currentTrain)}
                     ${createAlertButton('Furto', 'Borseggi, furti in corso o avvenuti', 'gem', currentTrain)}
                 </div>
-                <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg mb-4 shadow-sm">
+                <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg mb-3 shadow-sm">
                     <p class="text-xs font-bold text-blue-800">Stato Utente:</p>
                     <p class="text-sm font-semibold text-blue-900">Utente: ${appState.userData.nome} ${appState.userData.cognome} (${userStatus})</p>
                 </div>
-                <div class="p-4 bg-gray-50 border-l-4 border-gray-500 rounded-r-lg mb-8 cursor-pointer hover:bg-gray-100 transition" onclick="navigate('select_train')">
+                <div class="p-3 bg-gray-50 border-l-4 border-gray-500 rounded-r-lg mb-4 cursor-pointer hover:bg-gray-100 transition" onclick="navigate('select_train')">
                     <p class="text-xs font-bold text-gray-800 flex items-center justify-between">
                         Treno Attuale (Clicca per cambiare): <i data-lucide="chevron-right" class="w-4 h-4 ml-2"></i>
                     </p>
                     <p class="text-sm font-semibold text-gray-900">${currentTrain.train} (${currentTrain.type})</p>
                     <p class="text-xs text-gray-600 mt-1">${trainDetailsDisplay}</p>
                 </div>
-                <div class="mt-8 text-center p-4 bg-gray-50 rounded-lg">
+                 <div class="mt-4 text-center p-3 bg-gray-50 rounded-lg">
                     <p class="text-xs text-gray-500">In caso di emergenza grave e immediata, contatta il</p>
-                    <button onclick="simulateCall()" class="font-bold text-xl trenitalia-red mt-1 inline-block hover:underline focus:outline-none">112</button>
+                    <button onclick="simulateCall()" class="font-bold text-lg trenitalia-red mt-1 inline-block hover:underline focus:outline-none">112</button>
                     <p class="text-sm text-gray-800">Numero Unico di Emergenza</p>
                 </div>`;
         }
@@ -840,6 +815,7 @@ Put your HTML text here<!DOCTYPE html>
 
         function renderRegisterScreen() {
             const uData = appState.userData;
+            // Questo schermo è intrinsecamente lungo e deve scorrere all'interno del main
             return `
                 <div class="flex flex-col space-y-4 pb-4">
                     <p class="text-sm text-gray-600">Inserisci i tuoi dati per un contatto diretto e veloce con gli operatori FS in caso di emergenza.</p>
@@ -894,9 +870,9 @@ Put your HTML text here<!DOCTYPE html>
         function createAlertButton(type, description, icon, ticket) {
             const data = { alertType: type, description, icon, ...ticket };
             return `
-                <button onclick='navigate("pre_confirm", ${JSON.stringify(data)})' class="alert-card w-full flex items-center p-4 bg-white rounded-xl shadow-md border border-gray-100 text-left focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <div class="p-3 mr-4 rounded-full trenitalia-bg-red text-white flex-shrink-0"><i data-lucide="${icon}" class="w-6 h-6"></i></div>
-                    <div><p class="font-bold text-base text-gray-900">${type}</p><p class="text-xs text-gray-500">${description}</p></div>
+                <button onclick='navigate("pre_confirm", ${JSON.stringify(data)})' class="alert-card w-full flex items-center p-3 bg-white rounded-xl shadow-md border border-gray-100 text-left focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="p-2 mr-3 rounded-full trenitalia-bg-red text-white flex-shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-gray-900">${type}</p><p class="text-xs text-gray-500">${description}</p></div>
                     <i data-lucide="chevron-right" class="w-5 h-5 ml-auto text-gray-400 flex-shrink-0"></i>
                 </button>`;
         }
@@ -922,16 +898,16 @@ Put your HTML text here<!DOCTYPE html>
             
             return `
                 <div class="flex flex-col h-full">
-                    <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg mb-4">
+                    <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg mb-3">
                         <p class="text-sm font-semibold text-red-800">Attivando alert: <span class="uppercase">${data.alertType}</span></p>
                         <p class="text-xs text-red-700 mt-1">Utente: ${userName}</p><p class="text-xs text-red-700 mt-1">${locationInfo}</p>${regWarning}
                     </div>
-                    <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                    <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
                         <p class="text-sm font-bold text-yellow-800 flex items-center"><i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> ATTENZIONE - SANZIONI</p>
                         <p class="text-xs text-yellow-700 mt-1">L'attivazione indebita è un abuso (art. 17 DPR 753/80).</p>
                     </div>
                     ${qrPrompt}
-                    <div class="mt-auto pt-6">
+                    <div class="mt-auto pt-4">
                         <button onclick="activateAlert('${nextStep}')" class="w-full trenitalia-bg-red trenitalia-bg-red-hover text-white py-4 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">CONFERMA ATTIVAZIONE</button>
                     </div>
                 </div>`;
