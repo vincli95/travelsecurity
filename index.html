@@ -186,7 +186,7 @@
             padding: 0;
             overflow: hidden;
             position: relative; 
-            min-height: 350px; /* Ridotto il min-height per schermi piccoli */
+            min-height: 200px; /* MODIFICATO: Ridotto da 350px per schermi molto piccoli */
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
@@ -232,9 +232,19 @@
         }
 
         .poi-pin {
+            position: absolute; /* Aggiunto absolute per l'overlay dei pin */
             width: 24px; /* Ridotto */
             height: 24px; /* Ridotto */
             font-size: 0.6rem; /* Ridotto */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: white;
+            z-index: 15;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 3px;
         }
         .poi-pin i {
             width: 14px; /* Ridotto */
@@ -245,9 +255,22 @@
         .you-are-here {
             width: 24px; /* Ridotto */
             height: 24px; /* Ridotto */
+            background-color: #10b981; /* Verde smeraldo */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3); /* Anello pulsante */
+            position: absolute;
+            z-index: 15;
         }
         .you-are-here span {
             font-size: 0.5rem; /* Ridotto */
+            font-weight: 700;
+            position: absolute;
+            bottom: -15px;
+            white-space: nowrap;
         }
         /* FINE STILI MAPPA STAZIONE 2D MIGLIORATA */
 
@@ -516,7 +539,7 @@
             content.innerHTML = ''; // Pulisce il contenuto
 
             // Gestione pulsante Indietro
-            backButton.style.visibility = ['home', 'select_train', 'map'].includes(screen) ? 'hidden' : 'visible';
+            backButton.style.visibility = ['home', 'select_train', 'map', 'register', 'notifications'].includes(screen) ? 'hidden' : 'visible'; // Aggiungo le schermate principali senza indietro
 
             // Renderizza la schermata corretta
             let htmlContent = '';
@@ -577,11 +600,11 @@
         // FUNZIONE DI SUPPORTO PER PIN STAZIONE 2D
         function createStationPin(name, icon, color, position) {
             return `
-                <div onclick="showInfoAlert('Hai selezionato: ${name}', 'Servizio Stazione', '${icon}', '${color}')" 
+                <div onclick="showInfoAlert('Hai selezionato: ${name}', 'Servizio Stazione', '${icon}', '${color.replace('text-', '')}')" 
                      class="poi-pin" 
                      title="${name}"
-                     style="color: ${color.replace('text-', '#')}; border: 2px solid ${color.replace('text-', '#')}; ${position}">
-                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                     style="${position}">
+                     <i data-lucide="${icon}" class="${color}"></i>
                 </div>`;
         }
 
@@ -636,7 +659,10 @@
                         <div class="platform-area relative z-20" id="platform2">
                             <span class="label">Banchina 2/3</span>
                             ${platform2Pins}
-                            <div class="you-are-here" style="bottom: 5px; left: 25%;"><span>TU SEI QUI</span></div>
+                            <div class="you-are-here" style="left: 25%; top: 50%; transform: translate(-50%, -50%);">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                <span>TU SEI QUI</span>
+                            </div>
                         </div>
                         
                         <div class="track-line relative z-10"><span class="absolute left-0 top-0 -mt-4 bg-gray-600 text-white text-[10px] font-bold px-1 py-0.5 rounded-r-md">BINARIO 2</span></div>
@@ -654,7 +680,7 @@
                         </div>
                         
                     </div>
-                    <p class="text-xs text-center text-gray-500 mt-2">I servizi (POI) sono cliccabili. Il pin verde indica la tua posizione.</p>
+                    <p class="text-xs text-center text-gray-500 mt-2 flex-shrink-0">I servizi (POI) sono cliccabili. Il pin verde indica la tua posizione.</p>
                 </div>
             `;
         }
@@ -1050,7 +1076,6 @@
             // Inizializza l'app
             navigate('home'); // Mostra la schermata home
             updateNotificationBadge(); // Aggiorna il badge notifiche
-            // Rimosso l'errore updateClock che non era definito
         });
     </script>
 </body>
