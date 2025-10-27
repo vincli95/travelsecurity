@@ -714,10 +714,31 @@
                 </div>`;
         }
 
+        // --- FUNZIONE MODIFICATA (Pop-up) ---
         function selectTrain(trainId) {
             appState.userData.selectedTrainId = trainId;
+
+            // --- INIZIO MODIFICA: Notifica Pop-up per treno Regionale ---
+            const selectedTrain = appState.ticketData[trainId];
+
+            // Controlla se il treno selezionato è un regionale
+            // (Usiamo lo stesso controllo di renderPreConfirmScreen)
+            const isRegional = selectedTrain && (selectedTrain.type === "Regionale" || selectedTrain.type === "Regionale Veloce");
+
+            if (isRegional) {
+                const title = "Promemoria QR Code";
+                const message = "Hai selezionato un treno Regionale. Ti ricordiamo di individuare e scansionare il QR code a bordo per permettere una localizzazione precisa in caso di emergenza.";
+                
+                // Mostra il pop-up (modale) invece del toast
+                // Usiamo l'icona 'qr-code' e il colore 'trenitalia-red' (definito nel CSS)
+                showInfoAlert(message, title, 'qr-code', 'trenitalia-red'); 
+            }
+            // --- FINE MODIFICA ---
+
             navigate('select_train', {}, true); // Ricarica la schermata per mostrare la selezione
         }
+        // --- FINE FUNZIONE MODIFICATA ---
+
 
         function createTrainCard(train, isSelected) {
             const details = train.details ? `Carrozza: ${train.details.split(',')[0].replace('Carrozza ', '').trim()} - Posto: ${train.details.split(',')[1].trim()}` : `Tratta: ${train.route}`;
