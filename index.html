@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+Put your HTML text here<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -16,31 +16,32 @@
             /* Forza l'altezza al 100% per un'esperienza full-screen */
             height: 100vh;
             width: 100vw;
-            overflow: hidden; /* Evita lo scroll sul body */
+            /* **Rimosso 'overflow: hidden' dal body per permettere lo scroll se necessario (su desktop)** */
+            overflow-y: auto; 
         }
         /* Stili per il Mockup/Mobile: Full Screen di default */
         .app-container {
             width: 100vw;
-            min-height: 100vh;
+            /* Usa height: 100% per adattarsi al 100vh del body */
+            height: 100%; 
             max-width: 100%;
             margin: 0;
             border-radius: 0;
             box-shadow: none;
-            overflow: hidden;
+            /* **Rimosso 'overflow: hidden' dal container** */
             background-color: #ffffff;
             position: relative;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Struttura Header - Main - Footer */
         }
         /* Media query per migliorare l'aspetto su Desktop/Larghezze maggiori (opzionale) */
         @media (min-width: 640px) {
             body {
                 background-color: #f0f2f5; /* Sfondo grigio solo su desktop */
-                padding: 0; /* Rimosso padding per lasciare il body al 100% */
+                padding: 0; 
                 display: flex; /* Centra il contenitore se più piccolo del viewport */
                 align-items: center;
                 justify-content: center;
-                overflow-y: auto; /* Permette lo scroll se l'app-container è più alto */
             }
             .app-container {
                 max-width: 420px;
@@ -52,11 +53,9 @@
             }
         }
         
-        /* La classe .status-bar e la sua definizione sono state rimosse */
-
         .app-header {
             background-color: #f8fafc;
-            flex-shrink: 0;
+            flex-shrink: 0; /* Impedisce all'header di ridimensionarsi */
         }
         .trenitalia-red { color: #d6001c; }
         .trenitalia-bg-red { background-color: #d6001c; }
@@ -68,12 +67,17 @@
             transform: translateY(2px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
+        
+        /* *** CORREZIONE CRITICA: L'elemento main deve gestire lo scroll *** */
         main {
-            flex-grow: 1;
-            overflow-y: auto;
+            flex-grow: 1; /* Permette al main di occupare lo spazio rimanente */
+            overflow-y: auto; /* Abilita lo scorrimento verticale solo per il contenuto principale */
+            /* Aggiunge un padding di fondo per evitare che l'ultima riga di contenuto si nasconda dietro il footer */
+            padding-bottom: 20px; 
         }
+
         .footer-nav {
-            flex-shrink: 0;
+            flex-shrink: 0; /* Impedisce al footer di ridimensionarsi */
             border-top: 1px solid #e5e7eb;
         }
         .modal {
@@ -494,8 +498,6 @@
             modal.style.display = 'flex';
              if (typeof lucide !== 'undefined') lucide.createIcons();
         }
-
-        /* Funzione updateClock rimossa */
 
         function handleBack() {
             if (appState.history.length > 1) {
@@ -1071,8 +1073,8 @@
 
             // Inizializza l'app
             navigate('home'); // Mostra la schermata home
-            // Rimosse le chiamate a updateClock e setInterval
             updateNotificationBadge(); // Aggiorna il badge notifiche
+            // Rimosso l'errore updateClock che non era definito
         });
     </script>
 </body>
