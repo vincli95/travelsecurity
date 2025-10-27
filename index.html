@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel with Security - Simulazione</title>
+    <title>Travel with Security - Simulazione App Mobile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -293,7 +293,7 @@
                 <i data-lucide="user" class="w-5 h-5"></i>
                 <span>Registrati</span>
             </button>
-            <button onclick="navigate('map')" id="nav-map" class="flex flex-col items-center text-xs text-red-600 font-semibold">
+            <button onclick="navigate('map')" id="nav-map" class="flex flex-col items-center text-xs text-gray-500 hover:text-red-600">
                 <i data-lucide="map" class="w-5 h-5"></i> <span>Mappa Stazione</span>
             </button>
             <button onclick="navigate('notifications')" id="nav-notifications" class="flex flex-col items-center text-xs text-gray-500 hover:text-red-600 relative">
@@ -313,7 +313,23 @@
             </button>
         </div>
     </div>
-
+    
+    <div id="qr-choice-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center justify-center">
+                <i data-lucide="qr-code" class="w-6 h-6 mr-2 trenitalia-red"></i> Promemoria QR Code
+            </h3>
+            <p class="text-gray-700 mb-6">Hai selezionato un treno Regionale. Ti ricordiamo di individuare e scansionare il QR code a bordo per permettere una localizzazione precisa in caso di emergenza.</p>
+            <div class="space-y-3">
+                <button onclick="handleQRChoice('scan')" class="w-full trenitalia-bg-red trenitalia-bg-red-hover text-white py-2 rounded-lg font-bold transition-colors">
+                    Scansiona ora il QR
+                </button>
+                <button onclick="handleQRChoice('later')" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg font-bold transition-colors">
+                    Ricordamelo dopo
+                </button>
+            </div>
+        </div>
+    </div>
     <script>
         // Definizioni dei biglietti predefiniti
         const TICKET_DATA = {
@@ -328,27 +344,26 @@
                 id: 'regionale',
                 type: "Regionale",
                 train: "R21060",
-                details: null,
+                details: null, // Dettagli non specificati sul biglietto Regionale
                 route: "Napoli Centrale - Formia Gaeta"
             }
         };
 
-        // NUOVI POI per la Mappa Stazione 2D (con aggiunta di Banchina 3 e nuovi servizi)
         const STATION_POI = [
             // POI Edificio Terminale
             { name: 'Biglietteria', icon: 'ticket', color: 'text-blue-600', position: 'bottom: 5px; left: 10%;' },
             { name: 'Uscita Metro', icon: 'railway-track', color: 'text-gray-600', position: 'bottom: 5px; left: 35%;' },
             { name: 'Polizia Ferroviaria', icon: 'shield-check', color: 'text-red-600', position: 'bottom: 5px; right: 10%;' },
-            { name: 'Negozi', icon: 'store', color: 'text-purple-600', position: 'bottom: 5px; right: 30%;' }, // NUOVO POI
+            { name: 'Negozi', icon: 'store', color: 'text-purple-600', position: 'bottom: 5px; right: 30%;' },
             // POI Banchina 1/2
             { name: 'Bar', icon: 'coffee', color: 'text-yellow-600', position: 'bottom: 5px; left: 15%;', platform: 1 },
             { name: 'Sala Blu', icon: 'wheelchair', color: 'text-blue-600', position: 'bottom: 5px; right: 25%;', platform: 1 },
-            { name: 'Uscita Parcheggio', icon: 'parking-square', color: 'text-gray-700', position: 'bottom: 5px; left: 45%;', platform: 1 }, // NUOVO POI
+            { name: 'Uscita Parcheggio', icon: 'parking-square', color: 'text-gray-700', position: 'bottom: 5px; left: 45%;', platform: 1 },
             // POI Banchina 2/3
             { name: 'Toilette', icon: 'toilet', color: 'text-gray-600', position: 'bottom: 5px; left: 55%;', platform: 2 },
             { name: 'Info Point', icon: 'info', color: 'text-red-600', position: 'bottom: 5px; right: 10%;', platform: 2 },
-            { name: 'Distrib. Automatica', icon: 'droplet', color: 'text-cyan-600', position: 'bottom: 5px; left: 20%;', platform: 2 }, // NUOVO POI
-            // POI Banchina 3/4 (NUOVA BANCHINA)
+            { name: 'Distrib. Automatica', icon: 'droplet', color: 'text-cyan-600', position: 'bottom: 5px; left: 20%;', platform: 2 },
+            // POI Banchina 3/4
             { name: 'Scale Mobili', icon: 'move-vertical', color: 'text-green-600', position: 'bottom: 5px; left: 40%;', platform: 3 },
             { name: 'Punto Ritiro Bici', icon: 'bike', color: 'text-orange-600', position: 'bottom: 5px; right: 5%;', platform: 3 },
         ];
@@ -365,7 +380,12 @@
                 cognome: 'Rossi',
                 documentType: 'C.I. Elettronica',
                 documentCode: 'AB12345CD',
-                selectedTrainId: 'av',
+                selectedTrainId: 'av', // Default AV
+                trainInfo: {
+                    treno: "AV9403",
+                    carrozza: "5",
+                    posto: "1C"
+                }, // Dettagli di check-in (o da biglietto AV)
                 domicilio: {
                     provincia: 'RM', comune: 'Roma', indirizzo: 'Via Prova', civico: '12', cap: '00150'
                 }
@@ -375,6 +395,8 @@
                 { id: 1, title: 'Benvenuto', message: 'Registra i tuoi dati per un intervento rapido in caso di emergenza.', read: false, date: '2 ore fa', icon: 'shield-check', color: 'text-blue-500' },
                 { id: 2, title: 'Treno Partito', message: 'AV9403 è partito. Goditi il viaggio!', read: true, date: '1 ora fa', icon: 'train-front', color: 'text-green-500' }
             ],
+            // Modalità corrente della scansione QR ('alert' o 'checkin')
+            qrMode: 'alert' 
         };
 
 
@@ -477,6 +499,12 @@
                 navigate(previousScreen, {}, true);
             }
         }
+        
+        // Funzione per navigare alla scansione QR in modalità Check-in
+        function navigateCheckIn() {
+            appState.qrMode = 'checkin';
+            navigate('qr_scan');
+        }
 
         function navigate(screen, data = {}, isBack = false) {
             hideToast();
@@ -496,7 +524,7 @@
                 btn.classList.add('text-gray-500');
             });
             let targetNavId = `nav-${screen}`;
-            if (screen === 'select_train') targetNavId = 'nav-home'; // Seleziona treno illumina Home
+            if (screen === 'select_train') targetNavId = 'nav-home'; 
             const targetNavButton = document.getElementById(targetNavId);
             if (targetNavButton) {
                 targetNavButton.classList.add('text-red-600', 'font-semibold');
@@ -524,8 +552,8 @@
                     htmlContent = renderTrainSelectionScreen();
                     break;
                 case 'map':
-                    headerTitle.textContent = 'Mappa Stazione (2D)'; // Titolo aggiornato
-                    htmlContent = renderStationMapScreen(); // Mappa Modificata
+                    headerTitle.textContent = 'Mappa Stazione (2D)';
+                    htmlContent = renderStationMapScreen();
                     break;
                 case 'notifications':
                     headerTitle.textContent = 'Notifiche';
@@ -534,11 +562,12 @@
                     break;
                 case 'pre_confirm':
                     appState.currentAlert = data;
+                    appState.qrMode = 'alert'; // Imposta la modalità Alert
                     headerTitle.textContent = data.alertType.toUpperCase();
                     htmlContent = renderPreConfirmScreen(data);
                     break;
                 case 'qr_scan':
-                    headerTitle.textContent = 'Inquadra il codice QR';
+                    headerTitle.textContent = appState.qrMode === 'checkin' ? 'Salva la tua Posizione' : 'Inquadra il codice QR';
                     htmlContent = renderQRScanScreen();
                     break;
                 case 'success':
@@ -574,7 +603,7 @@
                 </div>`;
         }
 
-        // --- SCHERMATA MAPPA STAZIONE 2D (POTENZIATA) ---
+        // --- SCHERMATA MAPPA STAZIONE 2D ---
         function renderStationMapScreen() {
             
             // Genera i pin per l'Edificio Terminale
@@ -582,17 +611,15 @@
                 .filter(poi => !poi.platform)
                 .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
 
-            // Genera i pin per la Banchina 1/2
+            // Genera i pin per le Banchine
             const platform1Pins = STATION_POI
                 .filter(poi => poi.platform === 1)
                 .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
             
-            // Genera i pin per la Banchina 2/3
             const platform2Pins = STATION_POI
                 .filter(poi => poi.platform === 2)
                 .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
             
-            // Genera i pin per la Banchina 3/4 (NUOVA)
             const platform3Pins = STATION_POI
                 .filter(poi => poi.platform === 3)
                 .map(poi => createStationPin(poi.name, poi.icon, poi.color, poi.position)).join('');
@@ -657,9 +684,15 @@
                 ? `<span class="text-green-600 font-bold">Registrato</span>`
                 : `<span class="text-red-600 font-bold">Non Registrato</span>. Ti preghiamo di registrarti per un intervento più rapido.`;
             const currentTrain = getSelectedTrain();
-            const trainDetails = currentTrain.details
+            
+            // Dati da visualizzare: usa trainInfo se esiste, altrimenti i dettagli del biglietto.
+            let trainDetailsDisplay = currentTrain.details
                 ? `Carrozza ${currentTrain.details.split(',')[0].trim().replace('Carrozza ', '')}, ${currentTrain.details.split(',')[1].trim()}`
                 : `${currentTrain.route}`;
+            
+            if (appState.userData.trainInfo.carrozza) {
+                 trainDetailsDisplay = `Carrozza ${appState.userData.trainInfo.carrozza}, Posto ${appState.userData.trainInfo.posto || 'Generico'}`;
+            }
 
             return `
                 <div class="text-center mb-6">
@@ -692,7 +725,7 @@
                         Treno Attuale (Clicca per cambiare): <i data-lucide="chevron-right" class="w-4 h-4 ml-2"></i>
                     </p>
                     <p class="text-sm font-semibold text-gray-900">${currentTrain.train} (${currentTrain.type})</p>
-                    <p class="text-xs text-gray-600 mt-1">${trainDetails}</p>
+                    <p class="text-xs text-gray-600 mt-1">${trainDetailsDisplay}</p>
                 </div>
                 <div class="mt-8 text-center p-4 bg-gray-50 rounded-lg">
                     <p class="text-xs text-gray-500">In caso di emergenza grave e immediata, contatta il</p>
@@ -714,28 +747,71 @@
                 </div>`;
         }
 
-        // --- FUNZIONE MODIFICATA (Pop-up) ---
+        // --- FUNZIONI PER GESTIRE IL NUOVO MODALE DI SCELTA QR CODE ---
+        function showQRChoiceModal() {
+            const modal = document.getElementById('qr-choice-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        function hideQRChoiceModal() {
+            const modal = document.getElementById('qr-choice-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function handleQRChoice(choice) {
+            hideQRChoiceModal();
+            if (choice === 'scan') {
+                // Scelta: Scansiona ora il QR -> Naviga alla scansione in modalità CHECK-IN
+                navigateCheckIn();
+            } else {
+                // Scelta: Ricordamelo dopo -> Naviga alla Home (lasciando il treno selezionato)
+                showInfoAlert("Non dimenticare di scansionare il QR code a bordo per una localizzazione precisa!", "Promemoria", "info", "text-yellow-500");
+                navigate('home');
+            }
+        }
+        // --- FINE FUNZIONI MODALE SCELTA QR CODE ---
+        
+        // --- FUNZIONE MODIFICATA: selectTrain ---
         function selectTrain(trainId) {
             appState.userData.selectedTrainId = trainId;
 
-            // --- INIZIO MODIFICA: Notifica Pop-up per treno Regionale ---
             const selectedTrain = appState.ticketData[trainId];
+            
+            // Aggiorna trainInfo con i dati base del treno (se presenti sul biglietto)
+            if (selectedTrain.details) {
+                appState.userData.trainInfo = {
+                    treno: selectedTrain.train,
+                    carrozza: selectedTrain.details.split(',')[0].trim().replace('Carrozza ', ''),
+                    posto: selectedTrain.details.split(',')[1].trim().replace('Posto ', '')
+                };
+            } else {
+                // Se Regionale/altri, resetta i dettagli precisi e usa solo il treno
+                 appState.userData.trainInfo = {
+                    treno: selectedTrain.train,
+                    carrozza: null,
+                    posto: null
+                };
+            }
 
-            // Controlla se il treno selezionato è un regionale
-            // (Usiamo lo stesso controllo di renderPreConfirmScreen)
+
             const isRegional = selectedTrain && (selectedTrain.type === "Regionale" || selectedTrain.type === "Regionale Veloce");
 
-            if (isRegional) {
-                const title = "Promemoria QR Code";
-                const message = "Hai selezionato un treno Regionale. Ti ricordiamo di individuare e scansionare il QR code a bordo per permettere una localizzazione precisa in caso di emergenza.";
-                
-                // Mostra il pop-up (modale) invece del toast
-                // Usiamo l'icona 'qr-code' e il colore 'trenitalia-red' (definito nel CSS)
-                showInfoAlert(message, title, 'qr-code', 'trenitalia-red'); 
-            }
-            // --- FINE MODIFICA ---
+            // 1. Ricarica la schermata di selezione treno per mostrare lo stato selezionato
+            navigate('select_train', {}, true); 
 
-            navigate('select_train', {}, true); // Ricarica la schermata per mostrare la selezione
+            if (isRegional) {
+                // 2. Se Regionale, mostra il nuovo modale. La navigazione finale avviene in handleQRChoice.
+                showQRChoiceModal(); 
+            } else {
+                // 3. Se AV/Frecce, navigazione automatica alla Home.
+                setTimeout(() => {
+                    navigate('home');
+                    showInfoAlert(`Hai selezionato ${selectedTrain.train}. Benvenuto a bordo!`, "Treno Selezionato", "train-front", "trenitalia-red");
+                }, 100);
+            }
         }
         // --- FINE FUNZIONE MODIFICATA ---
 
@@ -821,10 +897,22 @@
         function renderPreConfirmScreen(data) {
             const isRegional = data.type === "Regionale" || data.type === "Regionale Veloce";
             const userName = `${appState.userData.nome} ${appState.userData.cognome}`;
-            const locationInfo = data.details ? `alla ${data.details}, treno ${data.train}.` : `sul treno ${data.train} (${data.route}).`;
+            
+            // Determina la posizione da mostrare
+            let locationDisplay = appState.userData.trainInfo.carrozza 
+                ? `Carrozza ${appState.userData.trainInfo.carrozza}, Posto ${appState.userData.trainInfo.posto || 'Generico'}`
+                : data.details ? data.details : `sul treno ${data.train} (${data.route})`;
+
+            const locationInfo = `alla ${locationDisplay}, treno ${data.train}.`;
+            
             const regWarning = !appState.userData.isRegistered ? `<p class="text-xs text-red-700 mt-2 font-semibold">ATTENZIONE: Non sei registrato.</p>` : '';
-            const qrPrompt = isRegional ? `<div class="p-4 bg-gray-100 rounded-lg text-center mt-6"><i data-lucide="qr-code" class="w-10 h-10 mx-auto text-gray-600 mb-2"></i><p class="text-sm font-semibold text-gray-800">Localizzazione</p><p class="text-xs text-gray-600 mt-1">Conferma e scansiona il QR code più vicino.</p></div>` : '';
-            const nextStep = isRegional ? 'qr_scan' : 'success';
+            
+            // La scansione QR è necessaria solo se non c'è una posizione specifica già salvata (ad esempio, treni Regionali senza QR scan)
+            const qrPrompt = isRegional && !appState.userData.trainInfo.carrozza ? `<div class="p-4 bg-gray-100 rounded-lg text-center mt-6"><i data-lucide="qr-code" class="w-10 h-10 mx-auto text-gray-600 mb-2"></i><p class="text-sm font-semibold text-gray-800">Localizzazione in Svolta</p><p class="text-xs text-gray-600 mt-1">Conferma l'allerta, poi scansiona il QR code per inviare la posizione precisa.</p></div>` : '';
+            
+            // Se è un treno regionale o non ha dettagli (e non è stato scansionato), il passo successivo è la scansione. Altrimenti è success
+            const nextStep = (isRegional && !appState.userData.trainInfo.carrozza) ? 'qr_scan' : 'success';
+            
             return `
                 <div class="flex flex-col h-full">
                     <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg mb-4">
@@ -845,36 +933,75 @@
         function activateAlert(nextStep) {
              const currentTrain = getSelectedTrain();
              if (nextStep === 'success' && appState.currentAlert) {
+                 // Per i treni AV, la posizione è già in trainInfo/biglietto
                  if (currentTrain.details) {
-                     appState.currentAlert.finalLocation = currentTrain.details;
-                 } else if (!appState.currentAlert.finalLocation || appState.currentAlert.finalLocation.includes("non specificata")) {
-                     appState.currentAlert.finalLocation = `Treno ${currentTrain.train}`;
+                     appState.currentAlert.finalLocation = appState.userData.trainInfo.carrozza 
+                        ? `Carrozza ${appState.userData.trainInfo.carrozza}, Posto ${appState.userData.trainInfo.posto}`
+                        : currentTrain.details;
+                 } else {
+                     // Per i Regionali che non hanno fatto check-in, la posizione è generica
+                     appState.currentAlert.finalLocation = `Treno ${currentTrain.train} (Posizione generica)`;
                  }
              }
              navigate(nextStep);
         }
 
         function renderQRScanScreen() {
+             const isCheckinMode = appState.qrMode === 'checkin';
+             const title = isCheckinMode ? 'Salva la tua Posizione' : 'Inquadra QR Code';
+             const buttonText = isCheckinMode ? 'SALVA POSIZIONE' : 'ATTIVA ALERT';
+             const actionFunction = isCheckinMode ? 'confirmQRCheckIn()' : 'confirmQRLocation()';
+             
              return `
                 <div class="text-center">
-                    <h2 class="text-xl font-bold text-gray-800">Inquadra QR Code</h2>
+                    <h2 class="text-xl font-bold text-gray-800">${title}</h2>
                     <p class="text-sm text-gray-600 mt-2 mb-6">Scansiona il codice per localizzarti.</p>
                     <div class="w-full max-w-xs aspect-square bg-gray-800 rounded-2xl flex items-center justify-center mb-8 relative overflow-hidden mx-auto">
                          <div class="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-white/80 rounded-tl-lg"></div><div class="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-white/80 rounded-tr-lg"></div><div class="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-white/80 rounded-bl-lg"></div><div class="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-white/80 rounded-br-lg"></div>
                         <div class="w-3/4 h-1 bg-red-500 absolute animate-pulse" style="animation: scan 2s infinite alternate;"></div>
                     </div><style> @keyframes scan { 0% { top: 15%; } 100% { top: 85%; } } </style>
-                    <p class="text-sm text-gray-500 mb-2">O inserisci il codice:</p>
-                    <input id="qr-input" type="text" placeholder="Es. C5-P12A" class="w-full p-3 border-2 border-gray-300 rounded-lg text-center font-mono tracking-widest focus:ring-2 focus:ring-red-500 focus:border-red-500 transition uppercase">
-                    <button onclick="confirmQRLocation()" class="w-full mt-6 trenitalia-bg-red trenitalia-bg-red-hover text-white py-4 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">ATTIVA ALERT</button>
+                    <p class="text-sm text-gray-500 mb-2">O inserisci il codice (Es. C5-P12A):</p>
+                    <input id="qr-input" type="text" placeholder="C5-P12A" class="w-full p-3 border-2 border-gray-300 rounded-lg text-center font-mono tracking-widest focus:ring-2 focus:ring-red-500 focus:border-red-500 transition uppercase">
+                    <button onclick="${actionFunction}" class="w-full mt-6 trenitalia-bg-red trenitalia-bg-red-hover text-white py-4 rounded-xl font-bold text-lg uppercase shadow-lg transition-colors">${buttonText}</button>
                 </div>`;
+        }
+
+        function confirmQRCheckIn() {
+            const input = document.getElementById('qr-input');
+            let locationCode = input ? input.value.trim().toUpperCase() : '';
+            
+            if (locationCode.length === 0) {
+                 locationCode = 'C1-PGN'; // Posizione di default Regionale
+            }
+
+            // Simula estrazione Carrozza/Posto
+            const parts = locationCode.split('-');
+            const carrozza = parts[0].replace('C', '') || '1';
+            const posto = parts.length > 1 ? parts[1].replace('P', '') : 'Generico';
+            
+            // Aggiorna trainInfo con la posizione scansionata
+            const currentTrain = getSelectedTrain();
+            appState.userData.trainInfo = {
+                treno: currentTrain.train,
+                carrozza: carrozza,
+                posto: posto
+            };
+            
+            // Torna alla Home e mostra il successo
+            navigate('home');
+
+            // --- INIZIO MODIFICA RICHIESTA UTENTE ---
+            const successMessage = `La tua posizione (Carrozza ${carrozza}, Posto ${posto}) è stata salvata con successo per qualsiasi emergenza.`;
+            showInfoAlert(successMessage, "Posizione Salvata", "check-circle", "text-green-600");
+            // --- FINE MODIFICA RICHIESTA UTENTE ---
         }
 
         function confirmQRLocation() {
             const input = document.getElementById('qr-input');
-            const locationCode = input ? input.value.trim() : '';
-            const currentTrain = getSelectedTrain();
+            const locationCode = input ? input.value.trim().toUpperCase() : 'Posizione non specificata';
+            
             if (appState.currentAlert) {
-                appState.currentAlert.finalLocation = locationCode.length > 0 ? locationCode.toUpperCase() : `Posizione non specificata (${currentTrain.route})`;
+                appState.currentAlert.finalLocation = locationCode;
             }
             navigate('success');
         }
@@ -943,9 +1070,6 @@
             updateClock(); // Imposta l'orologio
             updateNotificationBadge(); // Aggiorna il badge notifiche
             setInterval(updateClock, 30000); // Aggiorna l'orologio ogni 30 secondi
-
-            // Non è necessario chiamare lucide.createIcons() qui,
-            // perché viene chiamato alla fine di ogni `Maps()`
         });
     </script>
 </body>
